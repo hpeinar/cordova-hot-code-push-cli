@@ -1,196 +1,194 @@
-(function(){
-  var path = require('path'),
-      envFile = path.join(process.cwd(), '.chcpenv'),
-      Q = require('q'),
-      _ = require('lodash'),
-      fs = require("fs"),
-      buildDirectory = path.join(process.cwd(), '.chcpbuild'),
-      watch = require('watch'),
-      express = require('express'),
-      app = express(),
-      assetPort = process.env.PORT || 31284,
-      disablePublicTunnel = process.env.DISABLE_PUBLIC_TUNNEL || false,
-      compression = require('compression'),
-      build = require('./build.js').execute,
-      minimatch = require('minimatch'),
-      hidefile = require('hidefile'),
-      io,
-      chcpContext,
-      sourceDirectory,
-      ignoredFiles,
-      opts = {};
+import path from 'path';
+import _ from 'lodash';
+import fs from 'fs';
+import compression from 'compression';
+import watch from 'watch';
+import express from 'express';
+import minimatch from 'minimatch';
+import hidefile from 'hidefile';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import ngrok from 'ngrok';
 
-  module.exports = {
-    execute: execute
-  };
+import { execute as build } from './build.js';
+console.log('Build', build);
+const envFile = path.join(process.cwd(), '.chcpenv');
 
-  function updateLocalEnv(localEnv) {
+const buildDirectory = path.join(process.cwd(), '.chcpbuild');
+const app = express();
+const assetPort = process.env.PORT || 80;
+const disablePublicTunnel = process.env.DISABLE_PUBLIC_TUNNEL || false;
+
+let io = null;
+let chcpContext = null;
+let sourceDirectory = './www';
+let ignoredFiles = null;
+let opts = {
+    content_url: null,
+};
+let debugOpts = {};
+
+function updateLocalEnv(localEnv) {
     localEnv.config_url = localEnv.content_url + '/chcp.json';
 
     var json = JSON.stringify(localEnv, null, 2);
     fs.writeFileSync(envFile, json);
 
     return localEnv;
-  }
+}
 
-  function execute(context) {
+export async function execute(context) {
     chcpContext = context;
     ignoredFiles = context.ignoredFiles;
     chcpContext.argv.localdev = true;
     sourceDirectory = chcpContext.sourceDirectory;
 
-    var executeDfd = Q.defer(),
-      funcs = [];
+    if (disablePublicTunnel) return;
 
-    funcs.push(function(){
-      if (disablePublicTunnel)
-        return;
-      return publicTunnel(assetPort);
-    });
+    try {
+        let url = await publicTunnel(assetPort);
+        console.log('Server running at ', url);
 
-    funcs.push(function(content_url) {
-      var dfd = Q.defer();
+        opts.content_url = url;
+    } catch (err) {
+        console.log(err);
+    }
 
-      if (!disablePublicTunnel) {
-        opts.content_url = content_url;
-        chcpContext.argv.content_url = content_url;
-      }
+    let localUrl = null;
+    try {
+        localUrl = await assetServer(debugOpts);
+        console.log('Local URL', localUrl);
+    } catch (err) {
+        console.log(err);
+    }
 
-      dfd.resolve();
-      return dfd.promise;
-    });
+    opts.local_url = localUrl;
 
-    funcs.push(function(debugOpts){
-      if(debugOpts){
-        opts.debug_url = debugOpts.debug_url;
-        opts.console_url = debugOpts.console_url;
-      }
+    let config = {};
+    try {
+        config = await build(chcpContext);
+    } catch (err) {
+        throw err;
+    }
 
-      return assetServer(opts);
-    });
+    if (disablePublicTunnel) {
+        updateLocalEnv({ content_url: config.content_url });
+    }
 
-    funcs.push(function(local_url){
-      console.log('local_url', local_url);
-      opts.local_url = local_url;
+    console.log('cordova-hcp local server available at: ' + opts.local_url);
+    console.log(
+        'cordova-hcp public server available at: ' + config.content_url
+    );
+}
 
-      return build(chcpContext);
-    });
-
-    funcs.push(function(config){
-      if (disablePublicTunnel) {
-        updateLocalEnv({ content_url: config.content_url })
-      }
-      console.log('cordova-hcp local server available at: ' + opts.local_url);
-      console.log('cordova-hcp public server available at: ' + config.content_url);
-    });
-
-    return funcs.reduce(Q.when, Q('initial'));
-  }
-
-  function fileChangeFilter(file) {
+function fileChangeFilter(file) {
     // Ignore changes in files from the ignore list
     var fileIsAllowed = true;
-    var relativeFilePath = path.relative(chcpContext.sourceDirectory, file);
-    for (var i=0, len=ignoredFiles.length; i<len; i++) {
-      if (hidefile.isHiddenSync(file) || minimatch(relativeFilePath, ignoredFiles[i])) {
-        fileIsAllowed = false;
-        break;
-      }
+    var relativeFilePath = path.relative(sourceDirectory, file);
+    for (var i = 0, len = ignoredFiles.length; i < len; i++) {
+        if (
+            hidefile.isHiddenSync(file) ||
+            minimatch(relativeFilePath, ignoredFiles[i])
+        ) {
+            fileIsAllowed = false;
+            break;
+        }
     }
 
     return fileIsAllowed;
-  }
+}
 
-  function assetServer(opts) {
-    var serverDfd = Q.defer(),
-        localUrl = 'http://localhost:' + assetPort;
+function assetServer(opts) {
+    let localUrl = 'http://localhost:' + assetPort;
 
     // If a lot of files changes at the same time, we only want to trigger the change event once.
     handleFileChange = _.debounce(handleFileChange, 500);
 
     try {
-      killCaches(app);
-      serveStaticAssets(app, opts);
-      serveSocketIO(app);
-      watchForFileChange();
-      serverDfd.resolve(localUrl);
-    } catch(err) {
-      console.error('assetServer error: ', err);
-      serverDfd.reject(err);
+        killCaches(app);
+        serveStaticAssets(app, opts);
+        serveSocketIO(app);
+        watchForFileChange();
+        return localUrl;
+    } catch (err) {
+        console.error('assetServer error: ', err);
+        throw err;
     }
+}
 
-    return serverDfd.promise;
-  }
-
-  function watchForFileChange(){
+function watchForFileChange() {
     // Monitor for file changes
     console.log('Checking: ', sourceDirectory);
-    watch.watchTree(sourceDirectory, {filter: fileChangeFilter}, function (f, curr, prev) {
-      if (typeof f == "object" && prev === null && curr === null) {
-        // Finished walking the tree
-        // console.log('Finished');
-      } else {
-        handleFileChange(f);
-      }
-    });
-  }
+    watch.watchTree(
+        sourceDirectory,
+        { filter: fileChangeFilter },
+        function (f, curr, prev) {
+            if (typeof f == 'object' && prev === null && curr === null) {
+                // Finished walking the tree
+                // console.log('Finished');
+            } else {
+                handleFileChange(f);
+            }
+        }
+    );
+}
 
-  function handleFileChange(file) {
+function handleFileChange(file) {
     console.log('File changed: ', file);
-    build(chcpContext).then(function(config) {
-      console.log('Should trigger reload for build: '+config.release);
-      io.emit('release', { config: config });
+    build(chcpContext).then(function (config) {
+        console.log('Should trigger reload for build: ' + config.release);
+        io.emit('release', { config: config });
     });
-  }
+}
 
-  function serveSocketIO(app) {
+function serveSocketIO(app) {
     // Let's start the server
-    io = require("socket.io")(app.listen(assetPort));
+
+    const httpServer = createServer();
+    io = require('socket.io')(
+        app.listen(assetPort, () => {
+            console.log(
+                `Example app listening at http://localhost:${assetPort}`
+            );
+        })
+    );
 
     // Open up socket for file change notifications
     //io.set('transports', ['polling']);
-    io.on('connection', function(socket){
-      console.log('a user connected');
-      socket.on('disconnect', function(){
-        console.log('user disconnected');
-      });
+    io.on('connection', function (socket) {
+        console.log('a user connected');
+        socket.on('disconnect', function () {
+            console.log('user disconnected');
+        });
     });
-  }
+}
 
-  function serveStaticAssets(app, opts) {
-
+function serveStaticAssets(app, opts) {
     // Static assets
     app.use(compression());
     app.enable('view cache');
     app.use('/', express.static(sourceDirectory, { maxAge: 0 }));
-  }
+    console.log('Serving static', sourceDirectory);
+}
 
-  function killCaches(ass) {
+function killCaches(ass) {
     // Disable caches
     app.disable('etag');
-    app.use(function(req, res, next) {
-      req.headers['if-none-match'] = 'no-match-for-this';
-      next();
+    app.use(function (req, res, next) {
+        req.headers['if-none-match'] = 'no-match-for-this';
+        next();
     });
-  }
+}
 
-  function publicTunnel(port, options){
-    var publicTunnelDfd = Q.defer(),
-        ngrok = require('ngrok');
+async function publicTunnel(port, options) {
+    console.log('Tunnelling via port ' + port);
 
-    // And make it accessible from the internet
-    ngrok.connect(port, function (err, url) {
-      if (err) {
-        publicTunnelDfd.reject(err);
-        return console.log('Could not create tunnel: ', err);
-      }
-
-      updateLocalEnv({content_url: url});
-
-      publicTunnelDfd.resolve(url);
-    });
-
-
-    return publicTunnelDfd.promise;
-  }
-})();
+    try {
+        const url = await ngrok.connect();
+        updateLocalEnv({ content_url: url });
+        return url;
+    } catch (err) {
+        console.log('Could not create ngrok tunnel: ', err);
+        throw err;
+    }
+}

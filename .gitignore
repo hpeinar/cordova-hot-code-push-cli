@@ -2,3 +2,9 @@ node_modules
 npm-debug.log
 .DS_Store
 chcp.json
+
+.chcplogin
+
+dist/
+
+s3sync/
