@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import _ from 'lodash';
 import { getAllFilesSync } from 'get-all-files';
 import hidefile from 'hidefile';
+import glob from 'fast-glob';
 
 const createHash = crypto.createHash;
 
@@ -16,13 +17,28 @@ export async function execute(context) {
     let config = prepareConfig(context);
     let ignore = context.ignoredFiles;
 
-    let files = await getAllFilesSync(chcpContext.sourceDirectory).toArray();
+    //let files = await getAllFilesSync(chcpContext.sourceDirectory).toArray();
+
+    console.log('ignore', ignore);
+    let source = chcpContext.sourceDirectory
+        .split(path.sep)
+        .join(path.posix.sep);
+    console.log('Source', source);
+    let files = await glob(`${source}/**/**`, {
+        onlyFiles: true,
+        ignore: ignore,
+    });
+
+    // Now remove the ignored files
+
+    console.log('After', files);
 
     let hashQueue = prepareFilesHashQueue(files);
 
     const manifestFile = chcpContext.manifestFilePath;
     try {
         fs.writeFileSync(manifestFile, JSON.stringify(hashQueue));
+        console.log('Hashqueue', hashQueue);
     } catch (err) {
         return console.log(err);
     }
@@ -35,6 +51,7 @@ export async function execute(context) {
             chcpContext.projectsConfigFilePath,
             JSON.stringify(config, null, 2)
         );
+        console.log('Written to ' + chcpContext.projectsConfigFilePath);
         console.log(
             'Build ' +
                 config.release +

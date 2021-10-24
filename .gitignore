@@ -8,3 +8,7 @@ chcp.json
 dist/
 
 s3sync/
+
+.chcpenv
+
+.env

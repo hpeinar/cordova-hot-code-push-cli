@@ -5,7 +5,6 @@ import fs from 'fs-extra';
 import * as _ from 'lodash';
 import rimraf from 'rimraf';
 
-const build = require('./build.js').execute;
 const loginFile = path.join(process.cwd(), '.chcplogin');
 
 (function () {
@@ -15,7 +14,6 @@ const loginFile = path.join(process.cwd(), '.chcplogin');
 
     async function execute(context) {
         try {
-            await build(context);
             await deploy(context);
         } catch (err) {
             throw err;

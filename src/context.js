@@ -1,15 +1,17 @@
-var path = require('path');
-var fs = require('fs-extra');
-var _ = require('lodash');
-var IGNORED_FILES_CONFIG_PATH = path.join(process.cwd(), '.chcpignore');
-var DEFAULT_WWW_FOLDER = path.join(process.cwd(), 'www');
-var DEFAULT_CLI_CONFIG = path.join(process.cwd(), 'cordova-hcp.json');
-var DEFAULT_IGNORE_LIST = [
+import path from 'path';
+import fs from 'fs-extra';
+import * as _ from 'lodash';
+
+const IGNORED_FILES_CONFIG_PATH = path.join(process.cwd(), '.chcpignore');
+const DEFAULT_WWW_FOLDER = path.join(process.cwd(), 'www');
+const DEFAULT_CLI_CONFIG = path.join(process.cwd(), 'cordova-hcp.json');
+
+const DEFAULT_IGNORE_LIST = [
     '.DS_Store',
-    'node_modules/*',
-    'node_modules\\*',
-    'chcp.json',
-    'chcp.manifest',
+    'node_modules/**',
+    'node_modules\\**',
+    '**/chcp.json',
+    '**/chcp.manifest',
     '.chcp*',
     '.gitignore',
     '.gitkeep',
@@ -21,7 +23,7 @@ exports.context = function chcpContext(argv) {
     return new Context(argv);
 };
 
-var Context = function (argv) {
+const Context = function (argv) {
     this.argv = argv ? argv : {};
     this.defaultConfig = DEFAULT_CLI_CONFIG;
     this.sourceDirectory = getSourceDirectory(argv);
