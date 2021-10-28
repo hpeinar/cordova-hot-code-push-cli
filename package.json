@@ -4,7 +4,7 @@
     "description": "Cordova Hot Code Push CLI",
     "preferGlobal": true,
     "bin": {
-        "cordova-hcp": "bin/cordova-hcp"
+        "cordova-hcp": "bin/cordova-hcp.js"
     },
     "engines": {
         "node": ">=14.0.0"
