@@ -22,6 +22,10 @@
         "cordova-android",
         "cordova-ios"
     ],
+    "files": [
+        "bin",
+        "dist"
+    ],
     "source": "src/init.js",
     "main": "dist/main.js",
     "scripts": {
