@@ -1,8 +1,16 @@
-## Running in development
+# Installation: 
+A workaround to install cordova-hot-code-push-cli globally on node.js >= 14.0.0
+``` shell
+$ git clone https://github.com/vigorox/cordova-hot-code-push-cli
+$ cd cordova-hot-code-push-cli
+$ npm install
+$ npm run buildcli
 
-git clone https://github.com/ap1969/cordova-hot-code-push-cli
-install packages via yarn or npm
-yarn dev
+# Install from current path
+$ sudo npm install -g ./ 
+
+# "cordova-hcp" command should be available globally
+```
 
 # NOTES FROM HERE ARE FROM THE DEPRECATED NORDNET PROJECT!
 
