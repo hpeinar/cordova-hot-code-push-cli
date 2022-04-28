@@ -26,8 +26,6 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const loginFile = _path.default.join(process.cwd(), '.chcplogin');
-
 (function () {
   module.exports = {
     execute: execute
@@ -43,7 +41,6 @@ const loginFile = _path.default.join(process.cwd(), '.chcplogin');
 
   async function deploy(context) {
     let config;
-    let credentials;
     let ignore = context.ignoredFiles;
 
     try {
@@ -55,20 +52,8 @@ const loginFile = _path.default.join(process.cwd(), '.chcplogin');
     }
 
     if (!config) {
-      console.log('You need to run "cordova-hcp init" before you can run "cordova-hcp login".');
-      console.log('Both commands needs to be invoked in the root of the project directory.');
-      process.exit(0);
-    }
-
-    try {
-      credentials = _fsExtra.default.readFileSync(loginFile, 'utf8');
-      credentials = JSON.parse(credentials);
-    } catch (e) {
-      console.log('Cannot parse .chcplogin: ', e);
-    }
-
-    if (!credentials) {
-      console.log('You need to run "cordova-hcp login" before you can run "cordova-hcp deploy".');
+      console.log('You need to run "cordova-hcp init"');
+      console.log('Init command needs to be invoked in the root of the project directory.');
       process.exit(0);
     }
 
@@ -92,11 +77,7 @@ const loginFile = _path.default.join(process.cwd(), '.chcplogin');
     }
 
     const client = new _s3SyncClient.default({
-      region: config.s3region,
-      credentials: {
-        accessKeyId: credentials.key,
-        secretAccessKey: credentials.secret
-      }
+      region: config.s3region
     });
     const {
       TransferMonitor

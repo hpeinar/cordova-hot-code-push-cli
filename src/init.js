@@ -132,6 +132,6 @@ function done(err) {
         'If you wish to exclude files from being published, specify them in .chcpignore'
     );
     console.log(
-        'Before you can push updates you need to run "cordova-hcp login" in project directory'
+        'Before you can push updates dont forget to configure AWS credentials in env or AWS credentials file'
     );
 }

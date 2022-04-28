@@ -128,6 +128,6 @@ function done(err) {
 
   console.log('Project initialized and cordova-hcp.json file created.');
   console.log('If you wish to exclude files from being published, specify them in .chcpignore');
-  console.log('Before you can push updates you need to run "cordova-hcp login" in project directory');
+  console.log('Before you can push updates dont forget to configure AWS credentials in env or AWS credentials file');
 }
 //# sourceMappingURL=init.js.map

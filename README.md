@@ -1,5 +1,7 @@
 # Notes:
-Fork to fix md5 generation
+Fork to fix md5 generation     
+      
+Also removed login command as AWS credentials are loaded automatically from environment variables by the @awssdk (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN).   
 
 # Installation: 
 A workaround to install cordova-hot-code-push-cli globally on node.js >= 14.0.0
@@ -241,39 +243,6 @@ This means that `cordova-hcp` detected your changes, executed `build` command an
 
 1. Delete old version of the app.
 2. Reinstall the app with `cordova run` command.
-
-#### Login command
-
-```sh
-cordova-hcp login
-```
-
-Command requests and saves login credentials, using which deployment on the Amazon servers is performed. You need to run it before doing any deployment. Otherwise, `cordova-hcp` won't now how to login to the Amazon.
-
-When executed, you will be asked to enter your Amazon `Access Key Id` and `Access Key Secret`:
-
-```
-Running login
-Please provide: Amazon Access Key Id:  YOUR_ACCESS_KEY_ID
-Please provide: Amazon Secret Access Key:  YOUR_ACCESS_KEY_SECRET
-```
-
-Entered credentials will be placed in the `.chcplogin` file:
-
-```json
-{
-    "key": "YOUR_ACCESS_KEY_ID",
-    "secret": "YOUR_ACCESS_KEY_SECRET"
-}
-```
-
-From this point you are ready to deploy your project on Amazon server.
-
-**Advise:** don't forget to put `.chcplogin` file in the ignore list of your version control system, if any is used. For git you can do this by executing:
-
-```sh
-echo '.chcplogin' >> .gitignore
-```
 
 #### Deploy command
 

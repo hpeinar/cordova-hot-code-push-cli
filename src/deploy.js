@@ -5,8 +5,6 @@ import fs from 'fs-extra';
 import * as _ from 'lodash';
 import rimraf from 'rimraf';
 
-const loginFile = path.join(process.cwd(), '.chcplogin');
-
 (function () {
     module.exports = {
         execute: execute,
@@ -22,7 +20,6 @@ const loginFile = path.join(process.cwd(), '.chcplogin');
 
     async function deploy(context) {
         let config;
-        let credentials;
         let ignore = context.ignoredFiles;
 
         try {
@@ -36,22 +33,10 @@ const loginFile = path.join(process.cwd(), '.chcplogin');
         }
         if (!config) {
             console.log(
-                'You need to run "cordova-hcp init" before you can run "cordova-hcp login".'
+                'You need to run "cordova-hcp init"'
             );
             console.log(
-                'Both commands needs to be invoked in the root of the project directory.'
-            );
-            process.exit(0);
-        }
-        try {
-            credentials = fs.readFileSync(loginFile, 'utf8');
-            credentials = JSON.parse(credentials);
-        } catch (e) {
-            console.log('Cannot parse .chcplogin: ', e);
-        }
-        if (!credentials) {
-            console.log(
-                'You need to run "cordova-hcp login" before you can run "cordova-hcp deploy".'
+                'Init command needs to be invoked in the root of the project directory.'
             );
             process.exit(0);
         }
@@ -78,10 +63,6 @@ const loginFile = path.join(process.cwd(), '.chcplogin');
 
         const client = new s3sync({
             region: config.s3region,
-            credentials: {
-                accessKeyId: credentials.key,
-                secretAccessKey: credentials.secret,
-            },
         });
         const { TransferMonitor } = s3sync;
         const monitor = new TransferMonitor();
