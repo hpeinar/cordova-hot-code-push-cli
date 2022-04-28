@@ -1,7 +1,10 @@
+# Notes:
+Fork to fix md5 generation
+
 # Installation: 
 A workaround to install cordova-hot-code-push-cli globally on node.js >= 14.0.0
 ``` shell
-$ git clone https://github.com/vigorox/cordova-hot-code-push-cli
+$ git clone https://github.com/hpeinar/cordova-hot-code-push-cli
 $ cd cordova-hot-code-push-cli
 $ npm install
 $ npm run buildcli

@@ -119,7 +119,7 @@ function fileHashSync(filePath) {
   var fileData;
 
   try {
-    fileData = _fsExtra.default.readFileSync(filePath, 'utf8');
+    fileData = _fsExtra.default.readFileSync(filePath);
   } catch (err) {
     if (err.code === 'ENOENT') return console.error('File does not exist. Error: ', err);
     return console.error('Error: ', err);
@@ -130,7 +130,7 @@ function fileHashSync(filePath) {
 
   return {
     file: file,
-    hash: _crypto.default.createHash('md5').update(fileData, 'utf8').digest('hex')
+    hash: _crypto.default.createHash('md5').update(fileData).digest('hex')
   };
 }
 
@@ -142,7 +142,7 @@ function hashFile(filename, callback) {
 
 
   stream.on('data', function (data) {
-    hash.update(data, 'utf8');
+    hash.update(data);
   });
   stream.on('end', function () {
     var result = hash.digest('hex'),

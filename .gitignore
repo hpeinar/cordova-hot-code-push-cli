@@ -10,3 +10,5 @@ s3sync/
 .chcpenv
 
 .env
+
+.vscode
