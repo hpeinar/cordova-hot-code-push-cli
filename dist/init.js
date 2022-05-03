@@ -31,6 +31,13 @@ const s3bucket = {
 const s3prefix = {
   description: 'Path in S3 bucket (optional for cordova-hcp deploy)',
   pattern: /^[a-zA-Z\-\s0-9\.\/]+\/$/,
+  default: 'release',
+  message: 'Path must be only letters, numbers, spaces, forward slashes or dashes and must end with a forward slash'
+};
+const s3archivePrefix = {
+  description: 'Where should old releases be archived to?',
+  pattern: /^[a-zA-Z\-\s0-9\.\/]+\/$/,
+  default: 'archive',
   message: 'Path must be only letters, numbers, spaces, forward slashes or dashes and must end with a forward slash'
 };
 const s3region = {
@@ -59,6 +66,7 @@ const schema = {
     name,
     s3bucket,
     s3prefix,
+    s3archivePrefix,
     s3region,
     ios_identifier: iosIdentifier,
     android_identifier: androidIdentifier,

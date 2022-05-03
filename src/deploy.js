@@ -4,6 +4,7 @@ import prompt from 'prompt';
 import fs from 'fs-extra';
 import * as _ from 'lodash';
 import rimraf from 'rimraf';
+import fetch from 'node-fetch';
 
 (function () {
     module.exports = {
@@ -49,6 +50,11 @@ import rimraf from 'rimraf';
         // console.log('Ignore: ', ignore);
 
         try {
+            await archive(config);
+        } catch (archivingError) {
+            throw archivingError;
+        }
+        try {
             rimraf.sync('./s3sync');
             await fs.ensureDir('./s3sync');
         } catch (err) {
@@ -82,6 +88,58 @@ import rimraf from 'rimraf';
             console.log(
                 'Deploy complete',
                 `s3://${config.s3bucket}/${config.s3prefix}`
+            );
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async function archive(config) {
+        if (!config.s3archivingPrefix) {
+            console.log('Archiving prefix not specified, skipping archiving process'); 
+            return;
+        }
+
+        console.log('Trying to archive current release...');
+        const archiveClient = new s3sync({
+            region: config.s3region,
+        });
+
+        const { TransferMonitor } = s3sync;
+        const monitor = new TransferMonitor();
+        monitor.on('archiving progress', (progress) => console.log(progress));
+
+        let currentReleaseInformation;
+        try {
+            currentReleaseInformation = await (await fetch(`${path.config.content_url}`)).json();
+
+            if (!currentReleaseInformation.release || !currentReleaseInformation.release.length) {
+                throw new Error('Failed to read release information, aborting');
+            }
+
+            console.log(`Release "${currentReleaseInformation.release}" found, starting archiving process...`);
+        } catch (err) {
+            throw err;
+        }
+
+        const sourcePath = `s3://${config.s3bucket}/${config.s3prefix}`;
+        const archivePath = `s3://${config.s3bucket}/${config.s3archivingPrefix}/${currentReleaseInformation.release}`;
+
+        try {
+            await archiveClient.sync(
+                sourcePath,
+                archivePath,
+                {
+                    commandInput: {
+                        ACL: 'private',
+                    },
+                    monitor: monitor,
+                    del: false,
+                }
+            );
+            console.log(
+                'Archiving complete',
+                archivePath,
             );
         } catch (err) {
             throw err;
