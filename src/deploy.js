@@ -111,7 +111,7 @@ import fetch from 'node-fetch';
 
         let currentReleaseInformation;
         try {
-            currentReleaseInformation = await (await fetch(`${config.content_url}`)).json();
+            currentReleaseInformation = await (await fetch(`${config.content_url}/chcp.json`)).json();
 
             if (!currentReleaseInformation.release || !currentReleaseInformation.release.length) {
                 throw new Error('Failed to read release information, aborting');
