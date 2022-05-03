@@ -108,7 +108,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   }
 
   async function archive(config) {
-    if (!config.s3archivingPrefix) {
+    if (!config.s3archivePrefix) {
       console.log('Archiving prefix not specified, skipping archiving process');
       return;
     }
@@ -137,7 +137,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     }
 
     const sourcePath = "s3://".concat(config.s3bucket, "/").concat(config.s3prefix);
-    const archivePath = "s3://".concat(config.s3bucket, "/").concat(config.s3archivingPrefix, "/").concat(currentReleaseInformation.release);
+    const archivePath = "s3://".concat(config.s3bucket, "/").concat(config.s3archivePrefix, "/").concat(currentReleaseInformation.release);
 
     try {
       await archiveClient.sync(sourcePath, archivePath, {
