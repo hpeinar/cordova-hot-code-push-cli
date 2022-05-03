@@ -30,15 +30,15 @@ const s3bucket = {
 };
 const s3prefix = {
   description: 'Path in S3 bucket (optional for cordova-hcp deploy)',
-  pattern: /^[a-zA-Z\-\s0-9\.\/]+\/$/,
+  pattern: /^[a-zA-Z\-\s0-9\.\/]+$/,
   default: 'release',
-  message: 'Path must be only letters, numbers, spaces, forward slashes or dashes and must end with a forward slash'
+  message: 'Path must be only letters, numbers, spaces, forward slashes or dashes'
 };
 const s3archivePrefix = {
   description: 'Where should old releases be archived to?',
-  pattern: /^[a-zA-Z\-\s0-9\.\/]+\/$/,
+  pattern: /^[a-zA-Z\-\s0-9\.\/]+$/,
   default: 'archive',
-  message: 'Path must be only letters, numbers, spaces, forward slashes or dashes and must end with a forward slash'
+  message: 'Path must be only letters, numbers, spaces, forward slashes or dashes'
 };
 const s3region = {
   description: 'Amazon S3 region (required for cordova-hcp deploy)',
