@@ -125,7 +125,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     let currentReleaseInformation;
 
     try {
-      currentReleaseInformation = await (await (0, _nodeFetch.default)("".concat(_path.default.config.content_url))).json();
+      currentReleaseInformation = await (await (0, _nodeFetch.default)("".concat(config.content_url))).json();
 
       if (!currentReleaseInformation.release || !currentReleaseInformation.release.length) {
         throw new Error('Failed to read release information, aborting');
