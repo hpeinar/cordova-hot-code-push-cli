@@ -2,7 +2,7 @@
     "name": "test",
     "s3bucket": "cordova-hot-code-push-demo",
     "s3prefix": "release",
-    "s3archivingPrefix": "archive",
+    "s3archivePrefix": "archive",
     "s3region": "us-east-1",
     "ios_identifier": "",
     "android_identifier": "",

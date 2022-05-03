@@ -95,7 +95,7 @@ import fetch from 'node-fetch';
     }
 
     async function archive(config) {
-        if (!config.s3archivingPrefix) {
+        if (!config.s3archivePrefix) {
             console.log('Archiving prefix not specified, skipping archiving process'); 
             return;
         }
@@ -123,7 +123,7 @@ import fetch from 'node-fetch';
         }
 
         const sourcePath = `s3://${config.s3bucket}/${config.s3prefix}`;
-        const archivePath = `s3://${config.s3bucket}/${config.s3archivingPrefix}/${currentReleaseInformation.release}`;
+        const archivePath = `s3://${config.s3bucket}/${config.s3archivePrefix}/${currentReleaseInformation.release}`;
 
         try {
             await archiveClient.sync(
