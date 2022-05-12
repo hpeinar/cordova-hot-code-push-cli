@@ -140,13 +140,19 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     const archivePath = "s3://".concat(config.s3bucket, "/").concat(config.s3archivePrefix, "/").concat(currentReleaseInformation.release);
 
     try {
-      await archiveClient.sync(sourcePath, archivePath, {
+      const syncOptions = {
         commandInput: {
           ACL: 'private'
         },
         monitor: monitor,
         del: false
-      });
+      }; // if release is prefixed, remove the prefix when copying the release to archive folder
+
+      if (config.s3prefix) {
+        syncOptions.relocations = [[config.s3prefix, '']];
+      }
+
+      await archiveClient.sync(sourcePath, archivePath, syncOptions);
       console.log('Archiving complete', archivePath);
     } catch (err) {
       throw err;

@@ -126,16 +126,25 @@ import fetch from 'node-fetch';
         const archivePath = `s3://${config.s3bucket}/${config.s3archivePrefix}/${currentReleaseInformation.release}`;
 
         try {
+            const syncOptions = {
+                commandInput: {
+                    ACL: 'private',
+                },
+                monitor: monitor,
+                del: false,
+            };
+
+            // if release is prefixed, remove the prefix when copying the release to archive folder
+            if (config.s3prefix) {
+                syncOptions.relocations = [
+                    [config.s3prefix, '']
+                ]
+            }
+
             await archiveClient.sync(
                 sourcePath,
                 archivePath,
-                {
-                    commandInput: {
-                        ACL: 'private',
-                    },
-                    monitor: monitor,
-                    del: false,
-                }
+                syncOptions,
             );
             console.log(
                 'Archiving complete',
